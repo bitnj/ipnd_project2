@@ -1,10 +1,20 @@
 # IPND Stage 2 Final Project
 
-# unlike madlibs we know exactly what pattern we are looking for to
-# identify a blank space.  There can be multiple occurrences of the same
-# numbered blank.  The only assumptions is that the first occurrence of
-# each numbered blank appear in order (i.e. 1 before 2 and 2
-# before 3).  
+# Presents the user with a short text that contains missing words.  The user has
+# up do MAX_GUESSES per blank to answer correctly.
+
+# Unlike madlibs, where the placeholder values were variable, we know exactly
+# what pattern we are looking for to identify a blank space.  In this case,
+# the program expects a blank space with the format ___#___ (i.e. three
+# underscores followed by a number in the range 1-10.  There can be multiple
+# occurrences of the same numbered blank.  The only assumptions is that the
+# first occurrence of each numbered blank appear in order (i.e. 1 before 2 and 2
+# before 3 etc).
+
+# Quiz texts and their corresponding answers are provided in text files stored
+# in quizes_path and answers_path respectively.  It is assumed that quiz and
+# answer file pairs have identical names.
+
 
 import os # to get the listdir method
 import re # to use regular expressions for finding blanks
@@ -27,8 +37,7 @@ def get_quiz_list(path):
 def get_user_choices(avail_quizes):
     name = raw_input("Please tell me your name: ")
     
-    print ('''Choose a quiz by index (i.e. 0, 1, 2 etc.) from the list
-            below: ''')
+    print ('''\nChoose a quiz by index (i.e. 0, 1, 2 etc.) from the list below: ''')
     print avail_quizes
     choice = raw_input("Choice: ")
     return name, choice
@@ -63,9 +72,8 @@ def take_quiz():
     print quiz    
     
     # get a list of all blanks that match the pattern
-    matches = re.findall('___.___', quiz)
+    matches = re.findall('___[1-9]___|___10___', quiz)
     num_unique_matches = len(set(matches))
-    print matches
 
     index = 0 # keep track of which blank / answer pair we are talking about
     while index < num_unique_matches:
@@ -78,14 +86,16 @@ def take_quiz():
         # their allotted guesses
         while wrong_guesses < MAX_GUESSES and not correct:
             user_input = raw_input("What word goes in: " + placeholder + "?  ")
+            user_input = user_input.lower()
             #check if the answer given is correct and if so replace all
             #instances of this blank with the answer.
             correct_answer = answers[index].strip() # strip removes any leading
             # or trailing whitespace
+            correct_answer = correct_answer.lower()
             if user_input == correct_answer:
                 correct = True
                 quiz = quiz.replace(placeholder, user_input)
-                print 'Correct!\n'
+                print '\nCorrect!\n'
                 print quiz
                 index += 1
             else:
@@ -93,7 +103,7 @@ def take_quiz():
                 #chances they have left
                 wrong_guesses += 1
                 remaining_guesses -= 1
-                print 'Incorrect! You have ' + str(remaining_guesses) + ' guesses remaining.\n\n'
+                print '\nIncorrect! You have ' + str(remaining_guesses) + ' guesses remaining.\n'
                 print quiz
         if not correct:
             return 'You Lose!\n'
