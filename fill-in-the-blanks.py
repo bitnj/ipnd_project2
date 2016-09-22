@@ -23,7 +23,7 @@
 import os # to get the listdir method
 import re # to use regular expressions for finding blanks
 
-MAX_GUESSES = 5             # number of guesses for EACH blank
+MAX_GUESSES = 5             # upper bound of guesses for EACH blank
 quizes_path = "quizes"      # relative path to the quiz text files
 answers_path = "answers"    # relative path to the answer key files
 regEx = '___[1-9]___|___10___]' # search pattern for blanks
@@ -38,7 +38,7 @@ def display_welcome():
 # get available quiz levels.  Sort order is not guaranteed but this function
 # could be expanded to return a sorted list
 def get_levels(path):
-    return os.listdir(path)
+    return sorted(os.listdir(path))
     
 # prompt the user for their name and to choose from a list of available quizes
 def get_user_choices(levels):
@@ -89,7 +89,7 @@ def take_quiz():
     answers = answers.split(',')
     print quiz    
     
-    # get a list of all blanks that match our pattern
+    # get a sorted list of all blanks that match our pattern
     matches = re.findall(regEx, quiz)
     matches = list(sorted(set(matches)))
     num_unique_matches = len(set(matches))
@@ -104,7 +104,7 @@ def take_quiz():
         # let the user guess until they either get it right or they use all of
         # their allotted guesses
         while wrong_guesses < guesses and not correct:
-            user_input = (raw_input("What word goes in: " + placeholder + "?")).lower()
+            user_input = (raw_input("What word goes in: " + placeholder + "? ")).lower()
             #check if the answer given is correct and if so replace all
             #instances of this blank with the answer.
             correct_answer = (answers[index].strip()).lower()
@@ -123,8 +123,8 @@ def take_quiz():
                 print quiz
         # if you get here you hit your guess limit without getting it correct
         if not correct:
-            return 'You Lose!\n'
-    print "You Win!"
+            return 'Too many incorrect guesses! Better luck next time.\n'
+    print "You Win!\n"
     return quiz
         
 print take_quiz()       
