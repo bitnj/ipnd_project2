@@ -1,1 +1,1 @@
-function, arguments, None, list
+string, mutable, int, float

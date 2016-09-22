@@ -1,1 +1,6 @@
-This is just a ___1___ test file with ___2___ blanks to ___1___ test.
+The ___1___ data type is used to store characters.  The ___1___ data type is not
+___2___, which means it cannot be changed.  The ___3___ data type is
+used for numbers with no decimals, while the ___4___ data type is used for
+numbers with decimals.  It is important to remember that in order to preserve
+precision when doing division that at least on of the values be of type ___4___.
+

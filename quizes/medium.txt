@@ -1,0 +1,4 @@
+___1___s are objects that can hold values of any type, even themselves!  Unlike
+___2___s, ___1___ are mutable which means they can be changed.  You can
+determing the length of a ___1___ using the ___3___() method.  You can also
+___4___ over the elements, which is very powerful.

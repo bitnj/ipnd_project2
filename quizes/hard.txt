@@ -1,0 +1,5 @@
+___1___ is a powerful tool for getting sub sequences.  The ___2___ operater []
+is used to perform ___1___.
+Writing ___3___s or ___4___s is a way of separating code into smaller chunks that
+perform specific tasks.  ___3___s take ___5___s, which are called ___6___s or
+___7___s and return ___8___s.

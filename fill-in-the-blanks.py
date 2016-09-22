@@ -42,7 +42,7 @@ def get_levels(path):
     
 # prompt the user for their name and to choose from a list of available quizes
 def get_user_choices(levels):
-    name = raw_input("Please tell me your name: ")
+    name = raw_input("Please enter your name: ")
     
     # choose difficulty level
     level = -1
@@ -55,7 +55,7 @@ def get_user_choices(levels):
     guesses = -1
     while guesses not in range(1, MAX_GUESSES):
         print '''\nHow many incorrect guesses per blank do you want?\n'''
-        print "Choices (1-" + str(MAX_GUESSES) + ")"
+        print "Possible choices (1-" + str(MAX_GUESSES) + ")\n"
         guesses = int(raw_input("Choice: "))
     return name, level, guesses
 
@@ -89,8 +89,9 @@ def take_quiz():
     answers = answers.split(',')
     print quiz    
     
-    # get a list of all blanks that match the pattern
+    # get a list of all blanks that match our pattern
     matches = re.findall(regEx, quiz)
+    matches = list(sorted(set(matches)))
     num_unique_matches = len(set(matches))
 
     index = 0 # keep track of which blank / answer pair we are talking about
@@ -120,12 +121,10 @@ def take_quiz():
                 remaining_guesses -= 1
                 print '\nIncorrect! You have ' + str(remaining_guesses) + ' guesses remaining.\n'
                 print quiz
+        # if you get here you hit your guess limit without getting it correct
         if not correct:
             return 'You Lose!\n'
-    if correct:
-        print "You Win!"
-        return quiz
-    else:
-        return "You Lose!"
-    
+    print "You Win!"
+    return quiz
+        
 print take_quiz()       
