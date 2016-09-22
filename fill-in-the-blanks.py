@@ -32,12 +32,16 @@ quizes_path = "quizes"      # relative path to the quiz text files
 answers_path = "answers"    # relative path to the answer key files
 regEx = '___[1-9]___|___10___]' # search pattern for blanks
 
-# provides user with brief instructions
-def display_welcome():
+# provides user with brief instructions and load difficulty levels
+def init_quiz():
     print ("Welcome to the IPND Stage 2 Quizes.\n\nYou will be given " +
     str(MAX_GUESSES) + ''' guesses to correctly identify the missing word that
     belongs in each blank space (e.g. ___1___).  The answers are not
     case-sensitive.\n''')
+
+    # load difficulty levels
+    levels = get_levels(quizes_path)
+    return levels
 
 # get available quiz levels
 def get_levels(path):
@@ -53,81 +57,92 @@ def get_user_choices(levels):
         print '''\nChoose a difficulty level (by index) from the list: \n'''
         print levels
         level = int(raw_input("Choice: ")) - 1
-
+    print 'You chose difficulty level: ' + levels[level] + '.'
+    print 'Good luck, ' + name + '!\n'
+    
     # choose limit on incorrect guesses
     guesses = -1
-    while guesses not in range(1, MAX_GUESSES):
+    while guesses not in range(1, MAX_GUESSES + 1):
         print '''\nHow many incorrect guesses per blank do you want?\n'''
         print "Possible choices (1-" + str(MAX_GUESSES) + ")\n"
         guesses = int(raw_input("Choice: "))
     return name, level, guesses
 
 # take a relative path and a file name and return a string containing the text
-# read from the file
-def get_file_text(path, fname):
+# read from the file.  Optional args for returning text split into word list
+def get_file_text(path, fname, bSplit=False, split_on=','):
     f = open(path + '/' + fname, 'r')
     text = f.read()
+    if bSplit:
+        text = text.split(split_on)
     return text
+
+# takes a regEx pattern and finds matches within text.  also returns the number
+# of unique matches
+def get_pattern_matches(pattern, text):
+    match_list = re.findall(pattern, text)
+    match_list = list(sorted(set(match_list)))
+    num_unique = len(set(match_list))
+    return match_list, num_unique
+
+# resets the variables at the beginning of each new blank
+def reset_counts(max_guesses):
+    return max_guesses, 0, False
+
+# process correct answer - provide feedback and update needed counters/flags
+def process_correct_answer(user_input, placeholder, text, index):
+    text = text.replace(placeholder, user_input)
+    print '\nCorrect!\n'
+    print text
+    return True, index + 1, text
+    
+# process an incorrect answer - provide feedback and update counters
+def process_incorrect_answer(wrong_guesses, remaining_guesses, text):
+    wrong_guesses += 1
+    remaining_guesses -= 1
+    print '\nIncorrect! You have ' + str(remaining_guesses) + ' guesses remaining.\n'
+    print text
+    return wrong_guesses, remaining_guesses
 
 # beginning of program
 def take_quiz():
-    # welcome and give the user basic instructions
-    display_welcome()
-
-    # populates the difficulty_levels list
-    difficulty_levels = get_levels(quizes_path)
-
+    # give the user basic instructions and load difficulty levels
+    difficulty_levels = init_quiz()
+    
     # get the user name and quiz choice
     user_name, choice, guesses = get_user_choices(difficulty_levels)
-    print 'You chose difficulty level: ' + difficulty_levels[choice] + '. Good luck, ' + user_name + '!\n'
     
     # open the quiz text file and store the text
-    fname = difficulty_levels[choice]
-    quiz = get_file_text(quizes_path, fname)
+    quiz = get_file_text(quizes_path, difficulty_levels[choice])
+    print quiz
 
     # open the corresponding answer text file and store as a list
     # it is assumed that the answer file is named identically to the
     # quiz file
-    answers = get_file_text(answers_path, fname)
-    answers = answers.split(',')
-    print quiz    
+    answers = get_file_text(answers_path, difficulty_levels[choice], True)   
     
     # get a sorted list of all blanks that match our pattern
-    matches = re.findall(regEx, quiz)
-    matches = list(sorted(set(matches)))
-    num_unique_matches = len(set(matches))
+    matches, num_unique_matches = get_pattern_matches(regEx, quiz)
 
     index = 0 # keep track of which blank / answer pair we are talking about
     while index < num_unique_matches:
-        remaining_guesses = guesses
-        wrong_guesses = 0
-        correct = False
-        placeholder = matches[index]
-
+        remaining_guesses, wrong_guesses, correct = reset_counts(guesses)
         # let the user guess until they either get it right or they use all of
         # their allotted guesses
         while wrong_guesses < guesses and not correct:
-            user_input = (raw_input("What word goes in: " + placeholder + "? ")).lower()
-            #check if the answer given is correct and if so replace all
-            #instances of this blank with the answer.
+            user_input = (raw_input("What word goes in: " + matches[index] + "? ")).lower()
+            #check if the answer given
             correct_answer = (answers[index].strip()).lower()
             if user_input == correct_answer:
-                correct = True
-                quiz = quiz.replace(placeholder, user_input)
-                print '\nCorrect!\n'
-                print quiz
-                index += 1
+                correct, index, quiz = process_correct_answer(user_input,
+                        matches[index], quiz, index)
             else:
                 #Otherwise let the user know they got it wrong and report how many
                 #chances they have left
-                wrong_guesses += 1
-                remaining_guesses -= 1
-                print '\nIncorrect! You have ' + str(remaining_guesses) + ' guesses remaining.\n'
-                print quiz
+                wrong_guesses, remaining_guesses = process_incorrect_answer(wrong_guesses, remaining_guesses, quiz)
         # if you get here you hit your guess limit without getting it correct
         if not correct:
-            return 'Too many incorrect guesses! Better luck next time.\n'
-    print "You Win!\n"
-    return quiz
-        
-print take_quiz()       
+            return "Too many incorrect guesses! Better luck next time.\n"
+    return "You Win!\n"
+
+print take_quiz()
