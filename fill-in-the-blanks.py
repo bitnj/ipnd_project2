@@ -1,5 +1,7 @@
 # IPND Stage 2 Final Project
 
+# Neil Seas - 2016
+
 # Presents the user with a short text that contains missing words.  The user has
 # up do MAX_GUESSES per blank to answer correctly.
 
@@ -9,11 +11,13 @@
 # underscores followed by a number in the range 1-10.  There can be multiple
 # occurrences of the same numbered blank.  The only assumptions is that the
 # first occurrence of each numbered blank appear in order (i.e. 1 before 2 and 2
-# before 3 etc).
+# before 3 etc).  Blanks of the same number are filled in with the same value
+# and at the same time.
 
-# Quiz texts and their corresponding answers are provided in text files stored
-# in quizes_path and answers_path respectively.  It is assumed that quiz and
-# answer file pairs have identical names.
+# To keep the code neater and more easily allow for additional quizes the quiz
+# texts and their corresponding answers are provided in text files stored in
+# quizes_path and answers_path respectively.  It is assumed that quiz and answer
+# file pairs have identical names.
 
 
 import os # to get the listdir method
@@ -22,25 +26,38 @@ import re # to use regular expressions for finding blanks
 MAX_GUESSES = 5             # number of guesses for EACH blank
 quizes_path = "quizes"      # relative path to the quiz text files
 answers_path = "answers"    # relative path to the answer key files
+regEx = '___[1-9]___|___10___]' # search pattern for blanks
 
+# provides user with brief instructions
 def display_welcome():
-    print ("Welcome to the IPND Stage 2 Quizes.\nYou will be given " +
+    print ("Welcome to the IPND Stage 2 Quizes.\n\nYou will be given " +
     str(MAX_GUESSES) + ''' guesses to correctly identify the missing word that
     belongs in each blank space (e.g. ___1___).  The answers are not
     case-sensitive.\n''')
 
-# display the available files in the quiz directory
-def get_quiz_list(path):
+# get available quiz levels.  Sort order is not guaranteed but this function
+# could be expanded to return a sorted list
+def get_levels(path):
     return os.listdir(path)
     
 # prompt the user for their name and to choose from a list of available quizes
-def get_user_choices(avail_quizes):
+def get_user_choices(levels):
     name = raw_input("Please tell me your name: ")
     
-    print ('''\nChoose a quiz by index (i.e. 0, 1, 2 etc.) from the list below: ''')
-    print avail_quizes
-    choice = raw_input("Choice: ")
-    return name, choice
+    # choose difficulty level
+    level = -1
+    while level not in range(0, len(levels)):
+        print '''\nChoose a difficulty level (by index) from the list: \n'''
+        print levels
+        level = int(raw_input("Choice: ")) - 1
+
+    # choose limit on incorrect guesses
+    guesses = -1
+    while guesses not in range(1, MAX_GUESSES):
+        print '''\nHow many incorrect guesses per blank do you want?\n'''
+        print "Choices (1-" + str(MAX_GUESSES) + ")"
+        guesses = int(raw_input("Choice: "))
+    return name, level, guesses
 
 # take a relative path and a file name and return a string containing the text
 # read from the file
@@ -53,45 +70,43 @@ def get_file_text(path, fname):
 def take_quiz():
     # welcome and give the user basic instructions
     display_welcome()
-   
-    # get the list of available quizes 
-    file_list = get_quiz_list(quizes_path)
+
+    # populates the difficulty_levels list
+    difficulty_levels = get_levels(quizes_path)
 
     # get the user name and quiz choice
-    user_name, choice = get_user_choices(file_list)
-    print 'You chose quiz ' + choice + '. Good luck, ' + user_name + '!\n'
+    user_name, choice, guesses = get_user_choices(difficulty_levels)
+    print 'You chose difficulty level: ' + difficulty_levels[choice] + '. Good luck, ' + user_name + '!\n'
     
     # open the quiz text file and store the text
-    quiz = get_file_text(quizes_path, file_list[int(choice)])
+    fname = difficulty_levels[choice]
+    quiz = get_file_text(quizes_path, fname)
 
     # open the corresponding answer text file and store as a list
     # it is assumed that the answer file is named identically to the
     # quiz file
-    answers = get_file_text(answers_path, file_list[int(choice)])
+    answers = get_file_text(answers_path, fname)
     answers = answers.split(',')
     print quiz    
     
     # get a list of all blanks that match the pattern
-    matches = re.findall('___[1-9]___|___10___', quiz)
+    matches = re.findall(regEx, quiz)
     num_unique_matches = len(set(matches))
 
     index = 0 # keep track of which blank / answer pair we are talking about
     while index < num_unique_matches:
-        remaining_guesses = MAX_GUESSES
+        remaining_guesses = guesses
         wrong_guesses = 0
         correct = False
         placeholder = matches[index]
 
         # let the user guess until they either get it right or they use all of
         # their allotted guesses
-        while wrong_guesses < MAX_GUESSES and not correct:
-            user_input = raw_input("What word goes in: " + placeholder + "?  ")
-            user_input = user_input.lower()
+        while wrong_guesses < guesses and not correct:
+            user_input = (raw_input("What word goes in: " + placeholder + "?")).lower()
             #check if the answer given is correct and if so replace all
             #instances of this blank with the answer.
-            correct_answer = answers[index].strip() # strip removes any leading
-            # or trailing whitespace
-            correct_answer = correct_answer.lower()
+            correct_answer = (answers[index].strip()).lower()
             if user_input == correct_answer:
                 correct = True
                 quiz = quiz.replace(placeholder, user_input)
