@@ -19,6 +19,10 @@
 # quizes_path and answers_path respectively.  It is assumed that quiz and answer
 # file pairs have identical names.
 
+# Some Google searching was done to get details on methods I assumed would
+# exist, but for which I did not know the exact name.  E.g. os.listdir(),
+# sorted(), and findall(), set().
+
 
 import os # to get the listdir method
 import re # to use regular expressions for finding blanks
@@ -35,8 +39,7 @@ def display_welcome():
     belongs in each blank space (e.g. ___1___).  The answers are not
     case-sensitive.\n''')
 
-# get available quiz levels.  Sort order is not guaranteed but this function
-# could be expanded to return a sorted list
+# get available quiz levels
 def get_levels(path):
     return sorted(os.listdir(path))
     
